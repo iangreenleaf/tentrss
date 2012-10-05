@@ -57,7 +57,7 @@ def get_latest_posts(tent_uri):
     if apiroots is None or len(apiroots) == 0:
         return None, None, "No API roots found!"
 
-    args = {'limit': '10',
+    args = {'limit': '40',
             'post_types': 'https://tent.io/types/post/status/v0.1.0'}
     headers = {'accept': tent_mime}
     posts = None
