@@ -1,4 +1,5 @@
 import re
+import os
 from datetime import datetime
 from urlparse import urljoin
 from flask import Flask, render_template, make_response, url_for, \
@@ -141,4 +142,5 @@ def user_feed():
     return render_template('error.html', uri=tent_uri, error=error), 404
 
 if __name__ == '__main__':
-    app.run()
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
