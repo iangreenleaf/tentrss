@@ -15,16 +15,10 @@ and receive an RSS feed with ^-replies excluded.
 
 Useful for pushing your content to other networks, like [Twitter](https://ifttt.com/recipes/60394).
 
-Example nginx proxy configuration
----------------------------------
+Use it
+------
 
-    location /tentrss/ {
-        proxy_pass http://127.0.0.1:8001/;
-        proxy_redirect default;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Original-Request-URI $request_uri;
-    }
+Find it at http://tentrss.herokuapp.com/.
 
-The X-Original-Request-URI header allows TentRSS to generate a correct
-URL to the resulting feed.
+A typical feed URL will look like this:
+http://tentrss.herokuapp.com/feed?include_replies=0&uri=http%3A%2F%2Fiangreenleaf.tent.is%2F
