@@ -80,6 +80,9 @@ def get_latest_posts(tent_uri):
     if not flask_request.args.get('include_replies', True, toBool):
       posts = [post for post in posts if post['content']['text'] and post['content']['text'][0] != '^']
 
+    if flask_request.args.get('uri', '').find('iangreenleaf') > -1:
+      posts = [post for post in posts if post['content']['text'] and post['content']['text'].find("M$") != 0]
+
     # prepare info the template needs
     for post in posts:
         # The protocol unfortunately does not give us a canonical URL for
