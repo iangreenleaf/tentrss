@@ -7,10 +7,6 @@ from flask import Flask, render_template, make_response, url_for, \
 import requests
 app = Flask(__name__)
 
-
-tent_mime = 'application/vnd.tent.v0+json'
-
-
 def get_latest_posts(tent_uri):
     app.logger.debug('tent_uri is %s' % tent_uri)
     if tent_uri == '':
@@ -36,13 +32,13 @@ def get_latest_posts(tent_uri):
             continue # try next link, this one didn't parse
 
         app.logger.debug('link: %s, rel=%s' % (href, rel))
-        if rel != 'https://tent.io/rels/profile':
+        if rel != 'https://tent.io/rels/meta-post':
             continue
 
         # convert relative link (like "/profile") to absolute
         href = urljoin(tent_uri, href)
 
-        headers = {'accept': tent_mime}
+        headers = {'accept': 'application/vnd.tent.post.v0+json'}
         try:
             r = requests.get(href, timeout=5, headers=headers)
             r.raise_for_status()
@@ -51,18 +47,18 @@ def get_latest_posts(tent_uri):
             continue
 
         # profile link worked, use it
-        apiroots = r.json['https://tent.io/types/info/core/v0.1.0']['servers']
+        apiroots = r.json['post']['content']['servers']
         break
 
     if apiroots is None or len(apiroots) == 0:
         return None, None, "No API roots found!"
 
     args = {'limit': '40',
-            'post_types': 'https://tent.io/types/post/status/v0.1.0'}
-    headers = {'accept': tent_mime}
+            'types': 'https://tent.io/types/status/v0'}
+    headers = {'accept': 'application/vnd.tent.posts-feed.v0+json'}
     posts = None
     for root in apiroots:
-        url = root + "/posts"
+        url = root['urls']['posts_feed']
         try:
             r = requests.get(url, timeout=5, headers=headers, params=args)
             r.raise_for_status()
@@ -70,7 +66,7 @@ def get_latest_posts(tent_uri):
             app.logger.debug('exception when getting %s: %s' % (url, repr(e)))
             continue
 
-        posts = r.json
+        posts = r.json['posts']
         if posts is None:
             app.logger.debug('%s returned no valid JSON' % url)
         else:
@@ -94,13 +90,13 @@ def get_latest_posts(tent_uri):
         # being at least, we will special-case https://username.tent.is/
         # entities and provide a link in those cases only.
 
-        post['post_guid'] = root + '/posts/' + post['id']
-        m = re.match('''https://(\w+)\.tent\.is/tent$''', root)
+        # Cheating here, I should be using 'posts' not 'posts_feed'
+        post['post_guid'] = root['urls']['posts_feed'] + '/posts/' + post['id']
+        m = re.match('''https://(\w+)\.cupcake\.is$''', post['entity'])
         if m is not None:  # This is a Tent.is user
-            post['post_link'] = 'https://' + m.groups()[0] \
-                              + '.tent.is/posts/' + post['id']
+            post['post_link'] = 'https://micro.cupcake.io/posts/' + post['id']
 
-        dt = datetime.utcfromtimestamp(int(post['published_at']))
+        dt = datetime.utcfromtimestamp(int(post['published_at']) / 1000)
         # We don't know the actual timezone in which the user made this
         # post, but UNIX timestamps are UTC-based so we hardcode +0000.
         post['rfc822_time'] = dt.strftime('%a, %d %b %Y %H:%M:%S +0000')
