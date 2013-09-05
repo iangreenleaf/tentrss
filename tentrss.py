@@ -120,6 +120,9 @@ def front_page():
                                                      '/'))
         feed_url = urljoin(feed_url,
                            '.' + url_for('user_feed') + '?uri=' + tent_uri)
+        include_replies = flask_request.args.get('include_replies', False)
+        if include_replies:
+          feed_url += '&include_replies=' + include_replies
         return render_template('feed.html', posts=posts, uri=tent_uri,
                                root=root, feed_url=feed_url)
 
